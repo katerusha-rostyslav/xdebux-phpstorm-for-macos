@@ -33,17 +33,16 @@ RUN curl -sS https://getcomposer.org/installer | php && \
     mv composer.phar /usr/local/bin/composer && \
     printf "\nPATH=\"~/.composer/vendor/bin:\$PATH\"\n" | tee -a ~/.bashrc
 
-RUN pecl install xdebug-2.5.0 \
+RUN pecl install xdebug-3.0.4 \
     && docker-php-ext-enable xdebug
 
 ARG XDEBUG_INI=/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
-RUN echo "xdebug.default_enable = off" >> ${XDEBUG_INI} \
-    && echo "xdebug.remote_enable = on" >> ${XDEBUG_INI} \
-    && echo "xdebug.remote_autostart = off" >> ${XDEBUG_INI} \
-    && echo "xdebug.remote_connect_back = off" >> ${XDEBUG_INI} \
-    && echo "xdebug.remote_port = 9001" >> ${XDEBUG_INI} \
-    && echo "xdebug.remote_host = 10.254.254.254" >> ${XDEBUG_INI}
+RUN echo "xdebug.mode=debug" >> ${XDEBUG_INI} \
+    && echo "xdebug.client_host=10.254.254.254" >> ${XDEBUG_INI} \
+    && echo "xdebug.client_port=9000" >> ${XDEBUG_INI} \
+    && echo "xdebug.discover_client_host=false" >> ${XDEBUG_INI} \
+    && echo "xdebug.idekey=PHPSTORM" >> ${XDEBUG_INI}
 
 # install laravel envoy
 RUN composer global require "laravel/envoy"
@@ -53,16 +52,9 @@ RUN composer global require "laravel/installer"
 
 WORKDIR /var/www
 ```
-6. В файле docker-compose.env
+6. В файле docker-compose.env для xDebug v3:
 ```
-XDEBUG_REMOTE_ENABLE=1
-XDEBUG_REMOTE_HOST=10.254.254.254
-XDEBUG_REMOTE_PORT=9000
-XDEBUG_REMOTE_AUTOSTART=off
-XDEBUG_REMOTE_CONNECT_BACK=off
-XDEBUG_CONFIG=remote_host=10.254.254.254
-XDEBUG_DEFAULT_ENABLE=off
-XDEBUG_IDEKEY=PHPSTORM
+XDEBUG_CONFIG=xdebug.mode=debug;xdebug.client_host=10.254.254.254;xdebug.client_port=9000;xdebug.discover_client_host=false;xdebug.idekey=PHPSTORM;
 ```
 7. docker-compose up -d --build app
 8. Ставим brakepoint и слушаем входящие соединения
